@@ -13,9 +13,7 @@ using namespace std;
 
 
 // Add prototypes of helper functions here
-void wordleHelper(int index, std::string& current, std::set<std::string>& output, const std::string& floating, const std::set<std::string>& dict);
-
-bool isValid(std::string, const std::string& floating, const std::set<std::string>& dict);
+void wordleHelper(int index, std::string& current, std::set<std::string>& output, std::string floating, int remainingBlankSpace, const std::set<std::string>& dict);
 
 // Definition of primary wordle function
 std::set<std::string> wordle(
@@ -27,18 +25,18 @@ std::set<std::string> wordle(
 
     std::string current = in;
 
-    std::cout << current << std::endl;
-    /*
+    //std::cout << current << std::endl;
+    
+    int remainingBlankSpace = 0;
     for (int i = 0; i < in.size(); i++) 
     {
-        if (currentStr[i] == '-') 
+        if (in[i] == '-') 
         {
-            // then try somethingelse
-            // 
+            remainingBlankSpace++;
         }
-    }*/
+    }
 
-    wordleHelper(0, current, output, floating, dict);
+    wordleHelper(0, current, output, floating, remainingBlankSpace, dict);
     
     return output;
 
@@ -46,14 +44,13 @@ std::set<std::string> wordle(
 
 // Define any helper functions here
 
-void wordleHelper(int index, std::string& current, std::set<std::string>& output, const std::string& floating, const std::set<std::string>& dict) 
+void wordleHelper(int index, std::string& current, std::set<std::string>& output, std::string floating, int remainingBlankSpace, const std::set<std::string>& dict) 
 {
-    if (index == current.size()) 
+    if (index == current.size() || remainingBlankSpace == 0) 
     {
-        if (isValid(current, floating, dict)) 
+        if (floating.empty() && dict.find(current) != dict.end()) 
         {
             output.insert(current);
-
         }
         return;
     }
@@ -63,44 +60,46 @@ void wordleHelper(int index, std::string& current, std::set<std::string>& output
     // blanck == floating
     // the possibility is just floating itself
 
+
     if (current[index] != '-') 
     {
-        wordleHelper(index + 1, current, output, floating, dict); return;
+        wordleHelper(index + 1, current, output, floating, remainingBlankSpace, dict); 
+        return;
     }
+    
 
-    for (int i = 0; i < 26; i++) 
+    if (remainingBlankSpace == floating.size())
     {
-        current[index] = i + 'a';
-        std::cout << "try " << static_cast<char>('a' + i) << " -> " << current << std::endl;
-
-        wordleHelper(index + 1, current, output, floating, dict);
-
-        current[index] = '-';
-    }
-}
-
-bool isValid(std::string current, const std::string& floating, const std::set<std::string>& dict) //X
-{
-    if (dict.find(current) != dict.end()) 
-    {
-        bool found = true;
-
-        for (int i = 0; i < floating.size(); i++) 
+        for (int i = 0; i < floating.size(); i++)  
         {
-            size_t foundPos = current.find(floating[i]);
-            if (foundPos == std::string::npos) 
-            {
-                found = false;
-            }
-            else 
-            {
-                current[foundPos] = '-'; // mark them - if discovered cuz we want to see overlaps
-            }
+            char ch = floating[i];
+            current[index] = ch;
+            std::string tempFloating = floating;
+            tempFloating.erase(tempFloating.find(ch), 1);
+            wordleHelper(index + 1, current, output, tempFloating, remainingBlankSpace - 1, dict);
+            current[index] = '-';
         }
-
-        return found;
     }
-    else return false;
+    else  
+    {
+
+        for (int i = 0; i < 26; i++)
+        {
+            size_t foundPos = floating.find(i + 'a');
+            string tempFloating = floating;
+    
+            if (foundPos != std::string::npos) 
+            {
+                tempFloating.erase(foundPos, 1);
+            }
+    
+            current[index] = i + 'a';
+    
+            wordleHelper(index + 1, current, output, tempFloating, remainingBlankSpace - 1, dict);
+    
+            current[index] = '-';
+        }
+    }
 }
 
 

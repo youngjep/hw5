@@ -12,7 +12,8 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-    if(argc < 2){
+    if(argc < 2)
+    {
         cout << "Please provide an initial string (e.g. \"s---ng\")"
                 " and optional string of floating characters." << endl;
         return 1;
